@@ -18,6 +18,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.mdi2_105_soundin.ui.navigation.SoundInNavGraph
 import com.example.mdi2_105_soundin.ui.screens.LoginContent
 import com.example.mdi2_105_soundin.ui.screens.LoginScreen
 import com.example.mdi2_105_soundin.ui.theme.MDI2105SoundInTheme
@@ -32,9 +34,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    LoginScreen(
-                        onNavigateToRegister = {}
-                    )
+                    val navController = rememberNavController()
+                    SoundInNavGraph(navController = navController)
                 } // end of surface
             }
         }
@@ -46,7 +47,8 @@ class MainActivity : ComponentActivity() {
 fun SoundInPreview() {
     MDI2105SoundInTheme() {
         LoginScreen(
-            onNavigateToRegister = {}
+            onNavigateToRegister = {},
+            onLoginSuccess = {}
         )
     }
 }

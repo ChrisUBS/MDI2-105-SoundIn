@@ -177,7 +177,8 @@ fun LoginContent(
 @Composable
 fun LoginScreen(
     viewModel: LoginViewModel = viewModel(),
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -215,10 +216,11 @@ fun LoginScreen(
                 val isValid = viewModel.validateAndLogin()
                 scope.launch {
                     if(isValid) {
-                        snackbarHostState.showSnackbar(
-                            message = "Welcome to SoundIn",
-                            duration = SnackbarDuration.Short
-                        )
+//                        snackbarHostState.showSnackbar(
+//                            message = "Welcome to SoundIn",
+//                            duration = SnackbarDuration.Short
+//                        )
+                        onLoginSuccess()
                     } else {
                         snackbarHostState.showSnackbar(
                             message = "Invalid email or password",
