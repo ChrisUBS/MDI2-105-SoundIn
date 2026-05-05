@@ -46,7 +46,10 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.Navigator
+import com.example.mdi2_105_soundin.ui.LoginViewModel
 import com.example.mdi2_105_soundin.ui.theme.MDI2105SoundInTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -54,16 +57,18 @@ import kotlinx.coroutines.launch
 @Composable
 fun LoginContent(
     paddingValues: PaddingValues,
-    scope: CoroutineScope,
-    snackbarHostState: SnackbarHostState,
+    email: String,
+    password: String,
+    rememberSession: Boolean,
+    emailError: Boolean,
+    passwordError: Boolean,
+    // Functions to update the state
+    onEmailChanged: (String) -> Unit,
+    onPasswordChanged: (String) -> Unit,
+    onRememberSessionChanged: (Boolean) -> Unit,
+    onLoginClick: () -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var rememberSession by remember { mutableStateOf(false) }
-    var emailError by remember { mutableStateOf(false) }
-    var passwordError by remember { mutableStateOf(false) }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,10 +92,7 @@ fun LoginContent(
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
             value = email,
-            onValueChange = {
-                email = it
-                emailError = false
-            },
+            onValueChange = { onEmailChanged(it) },
             label = {
                 Text(text = "Email Address")
             },
@@ -109,10 +111,7 @@ fun LoginContent(
         var passwordVisible by remember { mutableStateOf(false) }
         OutlinedTextField(
             value = password,
-            onValueChange = {
-                password = it
-                passwordError = false
-            },
+            onValueChange = { onPasswordChanged(it) },
             label = {
                 Text(text = "Password")
             },
@@ -159,33 +158,11 @@ fun LoginContent(
             )
             Switch(
                 checked = rememberSession,
-                onCheckedChange = {
-                    rememberSession = it
-                }
+                onCheckedChange = { onRememberSessionChanged(it) }
             )
         } // end of row
         Button(
-            onClick = {
-                emailError = !email.contains("@") || !email.contains(".")
-                passwordError = password.length < 8 // or any other validation
-                if(emailError || passwordError) {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Please review the marked fields",
-                            actionLabel = "Dismiss",
-                            duration = SnackbarDuration.Short
-                        )
-                    } // end of snackbar
-                } else {
-                    scope.launch {
-                        snackbarHostState.showSnackbar(
-                            message = "Welcome to SoundIn",
-                            actionLabel = "Dismiss",
-                            duration = SnackbarDuration.Short
-                        )
-                    }
-                }
-            }, // end of on click
+            onClick = { onLoginClick() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Log In")
@@ -199,10 +176,17 @@ fun LoginContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
+    viewModel: LoginViewModel = viewModel(),
     onNavigateToRegister: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // We observe the StateFlow using CollectAsStateWithLifeCycle
+    val email by viewModel.email.collectAsStateWithLifecycle()
+    val password by viewModel.password.collectAsStateWithLifecycle()
+    val rememberSession by viewModel.rememberSession.collectAsStateWithLifecycle()
+    val emailError by viewModel.emailError.collectAsStateWithLifecycle()
+    val passwordError by viewModel.passwordError.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -219,8 +203,30 @@ fun LoginScreen(
         paddingValues ->
         LoginContent(
             paddingValues = paddingValues,
-            scope = scope,
-            snackbarHostState = snackbarHostState,
+            email = email,
+            password = password,
+            rememberSession = rememberSession,
+            emailError = emailError,
+            passwordError = passwordError,
+            onEmailChanged = viewModel::onEmailChanged,
+            onPasswordChanged = viewModel::onPasswordChanged,
+            onRememberSessionChanged = viewModel::onRememberSessionChanged,
+            onLoginClick = {
+                val isValid = viewModel.validateAndLogin()
+                scope.launch {
+                    if(isValid) {
+                        snackbarHostState.showSnackbar(
+                            message = "Welcome to SoundIn",
+                            duration = SnackbarDuration.Short
+                        )
+                    } else {
+                        snackbarHostState.showSnackbar(
+                            message = "Invalid email or password",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
+                }
+            },
             onNavigateToRegister = onNavigateToRegister
         )
     }
@@ -232,8 +238,15 @@ fun LoginContentPreview() {
     MDI2105SoundInTheme() {
         LoginContent(
             paddingValues = PaddingValues(0.dp),
-            scope = rememberCoroutineScope(),
-            snackbarHostState = remember { SnackbarHostState() },
+            email = "",
+            password = "",
+            rememberSession = false,
+            emailError = false,
+            passwordError = false,
+            onEmailChanged = {_:String ->},
+            onPasswordChanged = {_:String ->},
+            onRememberSessionChanged = {_:Boolean ->},
+            onLoginClick = {},
             onNavigateToRegister = {}
         )
     }
