@@ -34,6 +34,11 @@ fun SoundInNavGraph(
                     navController.navigate(SoundInRoutes.LOGIN) {
                         popUpTo(SoundInRoutes.LOGIN) { inclusive = true }
                     }
+                },
+                onLoginSuccess = {
+                    navController.navigate(SoundInRoutes.MAIN) {
+                        popUpTo(SoundInRoutes.LOGIN) { inclusive = true }
+                    }
                 }
             )
         } // end register composable

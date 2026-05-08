@@ -324,7 +324,8 @@ fun RegisterContent(
 @Composable
 fun RegisterScreen(
     viewModel: RegisterViewModel = viewModel(),
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onLoginSuccess: () -> Unit
 ) {
 
     val name by viewModel.name.collectAsStateWithLifecycle()
@@ -444,9 +445,11 @@ fun RegisterScreen(
                 val isValid = viewModel.validateAndRegister()
                 scope.launch{
                     if (isValid){
-                        snackbarHostState.showSnackbar("Account created successfully")
+                        // snackbarHostState.showSnackbar("Account created successfully")
+                        onLoginSuccess()
                     } else{
-                        snackbarHostState.showSnackbar("Please review the marked fields")}
+                        snackbarHostState.showSnackbar("Please review the marked fields")
+                    }
                 }
             }
         )
